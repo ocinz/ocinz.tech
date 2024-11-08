@@ -23,6 +23,17 @@ pipeline {
             }
         }
 
+        stage("Start") {
+            steps {
+                nodejs("NodeJS 20") {
+                    script {
+                        // Menjalankan Next.js di background dengan PM2 atau direktori lain
+                        sh 'pwd'
+                    }
+                }
+            }
+        }
+
         // stage("Start") {
         //     steps {
         //         nodejs("NodeJS 20") {
@@ -35,36 +46,36 @@ pipeline {
         //     }
         // }
 
-        stage("Deploy") {
-            steps {
-                script {
-                    // Membuat direktori tujuan jika belum ada
-                    sh """
-                        sudo mkdir -p /var/www/ocinz.tech/.next
-                        sudo mkdir -p /var/www/ocinz.tech/public
-                        sudo mkdir -p /var/www/ocinz.tech/pages
-                        sudo mkdir -p /var/www/ocinz.tech/node_modules
-                    """
+        // stage("Deploy") {
+        //     steps {
+        //         script {
+        //             // Membuat direktori tujuan jika belum ada
+        //             sh """
+        //                 sudo mkdir -p /var/www/ocinz.tech/.next
+        //                 sudo mkdir -p /var/www/ocinz.tech/public
+        //                 sudo mkdir -p /var/www/ocinz.tech/pages
+        //                 sudo mkdir -p /var/www/ocinz.tech/node_modules
+        //             """
                     
-                    // Menyalin hasil build ke direktori deploy
-                    sh """
-                        sudo cp -r .next /var/www/ocinz.tech/.next
-                        sudo cp -r public /var/www/ocinz.tech/public
-                        sudo cp -r pages /var/www/ocinz.tech/pages
-                        sudo cp -r node_modules /var/www/ocinz.tech/node_modules
-                    """
+        //             // Menyalin hasil build ke direktori deploy
+        //             sh """
+        //                 sudo cp -r .next /var/www/ocinz.tech/.next
+        //                 sudo cp -r public /var/www/ocinz.tech/public
+        //                 sudo cp -r pages /var/www/ocinz.tech/pages
+        //                 sudo cp -r node_modules /var/www/ocinz.tech/node_modules
+        //             """
                     
-                    // Mengonfigurasi Nginx
-                    sh """
-                        sudo cp /etc/nginx/sites-available/default /etc/nginx/sites-available/ocinz.tech
-                        sudo sed -i 's|root /var/www/html;|root /var/www/ocinz.tech;|g' /etc/nginx/sites-available/ocinz.tech
-                        sudo sed -i 's|server_name _;|server_name ocinz.tech;|g' /etc/nginx/sites-available/ocinz.tech
-                        sudo systemctl restart nginx
-                    """
-                    echo "Application deployed successfully"
-                }
-            }
-        }
+        //             // Mengonfigurasi Nginx
+        //             sh """
+        //                 sudo cp /etc/nginx/sites-available/default /etc/nginx/sites-available/ocinz.tech
+        //                 sudo sed -i 's|root /var/www/html;|root /var/www/ocinz.tech;|g' /etc/nginx/sites-available/ocinz.tech
+        //                 sudo sed -i 's|server_name _;|server_name ocinz.tech;|g' /etc/nginx/sites-available/ocinz.tech
+        //                 sudo systemctl restart nginx
+        //             """
+        //             echo "Application deployed successfully"
+        //         }
+        //     }
+        // }
 
 
     }
