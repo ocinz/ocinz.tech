@@ -17,8 +17,9 @@ pipeline {
 
         stage('Install Dependencies') {
             steps {
-                // Install dependencies dengan npm
-                sh 'npm install'
+                nodejs('<name of your Node installation>'){
+                    npm install
+                    }
             }
         }
 
