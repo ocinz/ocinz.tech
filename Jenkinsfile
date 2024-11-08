@@ -18,7 +18,7 @@ pipeline {
                         sh ('pwd')
                         // Install dependencies dan build aplikasi
                         sh 'npm install'
-                        sh 'npm run build'
+                        sh 'npm run build && ls'
                         sh ('ls')
                     }
                 }
