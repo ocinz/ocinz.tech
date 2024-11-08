@@ -15,9 +15,11 @@ pipeline {
             steps {
                 nodejs("NodeJS 20") {
                     script {
+                        sh ('pwd')
                         // Install dependencies dan build aplikasi
                         sh 'npm install'
                         sh 'npm run build'
+                        sh ('ls')
                     }
                 }
             }
