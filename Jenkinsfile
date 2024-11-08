@@ -1,98 +1,57 @@
 pipeline {
     agent any
 
-    tools {
-        nodejs "NodeJS 20"
-    }
-
     environment {
-        DEPLOY_DIR = "/var/www/ocinz.tech"  // Direktori tempat aplikasi Next.js dideploy
-        NGINX_CONF = "/etc/nginx/sites-available/ocinz.tech"  // Path file konfigurasi Nginx
+        DOCKER_IMAGE = "ocinz/nextjs-app"
+        SERVER_IP = "your-server-ip"  // Ganti dengan IP server Anda
+        SSH_USER = "your-ssh-user"    // Ganti dengan username SSH yang memiliki akses ke server
     }
 
     stages {
-        stage("Build") {
+        
+        stage('Build Docker Image') {
             steps {
-                nodejs("NodeJS 20") {
-                    script {
-                        sh ('pwd')
-                        // Install dependencies dan build aplikasi
-                        sh 'npm install'
-                        sh 'npm run build'
-                        sh ('ls')
-                    }
+                script {
+                    // Membangun image Docker di server Jenkins
+                    docker.build(DOCKER_IMAGE)
                 }
             }
         }
 
-        stage("Start") {
+        stage('Deploy to Server') {
             steps {
-                nodejs("NodeJS 20") {
-                    script {
-                        // Menjalankan Next.js di background dengan PM2 atau direktori lain
-                        sh 'pwd'
-                    }
+                script {
+                    // Menjalankan perintah SSH untuk menyalin kode dan membangun container di server
+                    sh """
+                    ssh ${SSH_USER}@${SERVER_IP} '
+                        # Masuk ke direktori proyek di server
+                        cd /path/to/your/project || exit 1
+                        
+                        # Pull kode terbaru dari GitHub
+                        git pull origin main || exit 1
+
+                        # Menghentikan dan menghapus container lama jika ada
+                        docker stop nextjs-app || true
+                        docker rm nextjs-app || true
+
+                        # Membangun image Docker secara lokal
+                        docker build -t ${DOCKER_IMAGE} . || exit 1
+
+                        # Menjalankan container dengan nama "nextjs-app"
+                        docker run -d --name nextjs-app -p 80:3000 ${DOCKER_IMAGE} || exit 1
+                    '
+                    """
                 }
             }
         }
-
-        // stage("Start") {
-        //     steps {
-        //         nodejs("NodeJS 20") {
-        //             script {
-        //                 // Menjalankan Next.js di background dengan PM2 atau direktori lain
-        //                 sh 'npm run start &'
-        //                 echo "App started successfully"
-        //             }
-        //         }
-        //     }
-        // }
-
-        // stage("Deploy") {
-        //     steps {
-        //         script {
-        //             // Membuat direktori tujuan jika belum ada
-        //             sh """
-        //                 sudo mkdir -p /var/www/ocinz.tech/.next
-        //                 sudo mkdir -p /var/www/ocinz.tech/public
-        //                 sudo mkdir -p /var/www/ocinz.tech/pages
-        //                 sudo mkdir -p /var/www/ocinz.tech/node_modules
-        //             """
-                    
-        //             // Menyalin hasil build ke direktori deploy
-        //             sh """
-        //                 sudo cp -r .next /var/www/ocinz.tech/.next
-        //                 sudo cp -r public /var/www/ocinz.tech/public
-        //                 sudo cp -r pages /var/www/ocinz.tech/pages
-        //                 sudo cp -r node_modules /var/www/ocinz.tech/node_modules
-        //             """
-                    
-        //             // Mengonfigurasi Nginx
-        //             sh """
-        //                 sudo cp /etc/nginx/sites-available/default /etc/nginx/sites-available/ocinz.tech
-        //                 sudo sed -i 's|root /var/www/html;|root /var/www/ocinz.tech;|g' /etc/nginx/sites-available/ocinz.tech
-        //                 sudo sed -i 's|server_name _;|server_name ocinz.tech;|g' /etc/nginx/sites-available/ocinz.tech
-        //                 sudo systemctl restart nginx
-        //             """
-        //             echo "Application deployed successfully"
-        //         }
-        //     }
-        // }
-
-
     }
 
     post {
-        always {
-            echo "Pipeline completed"
-        }
-
         success {
-            echo "Deployment to $DEPLOY_DIR completed successfully"
+            echo 'Deployment berhasil!'
         }
-
         failure {
-            echo "Deployment failed"
+            echo 'Deployment gagal.'
         }
     }
 }
