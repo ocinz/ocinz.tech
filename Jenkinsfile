@@ -17,7 +17,7 @@ pipeline {
 
         stage('Install Dependencies') {
             steps {
-                nodejs('<name of your Node installation>'){
+                nodejs('NodeJS 20.x'){
                     npm install
                     }
             }
